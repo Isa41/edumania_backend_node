@@ -11,6 +11,39 @@ router.get('/', async (req, res) => {
     }
 });
 
+router.get('/filter', async (req, res) => {
+    try {
+        const categoryId = req.query.categoryId;
+        const languageId = req.query.languageId;
+        const page = parseInt(req.query.page) || 1;  
+        const size = parseInt(req.query.size) || 10; 
+
+        const query = {
+            category: categoryId,
+            language: languageId
+        };
+
+        const questions = await Question.find(query)
+            .populate('category')
+            .populate('language')
+            .skip((page - 1) * size)
+            .limit(size);
+
+        const totalItems = await Question.countDocuments(query);
+        const totalPages = Math.ceil(totalItems / size);
+
+        res.json({
+            data: questions,
+            page,
+            size,
+            totalPages,
+            totalItems
+        });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
 router.get('/:id', async (req, res) => {
     try {
         const question = await Question.findById(req.params.id).populate('language').populate('category');
