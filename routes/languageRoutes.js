@@ -15,7 +15,7 @@ router.get('/:id', async (req, res) => {
     try {
         const language = await Language.findById(req.params.id);
         if (language == null) {
-            return res.status(404).json({ message: 'Dil bulunamadı' });
+            return res.status(404).json({ message: 'No language' });
         }
         res.json(language);
     } catch (err) {
@@ -41,7 +41,7 @@ router.patch('/:id', async (req, res) => {
     try {
         const language = await Language.findById(req.params.id);
         if (language == null) {
-            return res.status(404).json({ message: 'Dil bulunamadı' });
+            return res.status(404).json({ message: 'No language' });
         }
 
         if (req.body.image != null) {
@@ -65,11 +65,11 @@ router.delete('/:id', async (req, res) => {
     try {
         const language = await Language.findById(req.params.id);
         if (language == null) {
-            return res.status(404).json({ message: 'Dil bulunamadı' });
+            return res.status(404).json({ message: 'No language' });
         }
 
         await language.remove();
-        res.json({ message: 'Dil silindi' });
+        res.json({ message: 'Lanugauge was deleted' });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

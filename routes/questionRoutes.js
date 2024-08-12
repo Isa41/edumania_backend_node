@@ -48,7 +48,7 @@ router.get('/:id', async (req, res) => {
     try {
         const question = await Question.findById(req.params.id).populate('language').populate('category');
         if (question == null) {
-            return res.status(404).json({ message: 'Soru bulunamadı' });
+            return res.status(404).json({ message: 'No question' });
         }
         res.json(question);
     } catch (err) {
@@ -83,7 +83,7 @@ router.patch('/:id', async (req, res) => {
     try {
         const question = await Question.findById(req.params.id);
         if (question == null) {
-            return res.status(404).json({ message: 'Soru bulunamadı' });
+            return res.status(404).json({ message: 'No question' });
         }
 
         if (req.body.word != null) {
@@ -134,11 +134,11 @@ router.delete('/:id', async (req, res) => {
     try {
         const question = await Question.findById(req.params.id);
         if (question == null) {
-            return res.status(404).json({ message: 'Soru bulunamadı' });
+            return res.status(404).json({ message: 'No question' });
         }
 
         await question.remove();
-        res.json({ message: 'Soru silindi' });
+        res.json({ message: 'Question was deleted' });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

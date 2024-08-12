@@ -9,25 +9,21 @@ const questionRoutes = require('./routes/questionRoutes');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
 app.use(express.json());
 
-// MongoDB bağlantısı
 mongoose.connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 }).then(() => {
-    console.log('MongoDB bağlantısı başarılı');
+    console.log('MongoDB connected');
 }).catch((err) => {
-    console.error('MongoDB bağlantı hatası:', err);
+    console.error('MongoDB connection error:', err);
 });
 
-// Routes
 app.use('/api/categories', categoryRoutes);
 app.use('/api/languages', languageRoutes);
 app.use('/api/questions', questionRoutes);
 
-// Sunucuyu başlat
 app.listen(PORT, () => {
-    console.log(`Sunucu http://localhost:${PORT} adresinde çalışıyor.`);
+    console.log(`Server run this port: http://localhost:${PORT}`);
 });

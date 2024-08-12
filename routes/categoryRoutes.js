@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const Category = require('../models/category');
 
-// GET tüm kategoriler
 router.get('/', async (req, res) => {
     try {
         const categories = await Category.find().populate('language');
@@ -12,12 +11,11 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Belirli bir Language ID'ye göre kategorileri getir (sayfalı)
 router.get('/language/:languageId', async (req, res) => {
     try {
         const languageId = req.params.languageId;
-        const page = parseInt(req.query.page) || 1;  // Varsayılan olarak 1. sayfa
-        const size = parseInt(req.query.size) || 10;  // Varsayılan olarak 10 öğe
+        const page = parseInt(req.query.page) || 1;  
+        const size = parseInt(req.query.size) || 10; 
 
         const categories = await Category.find({ language: languageId })
             .populate('language')
@@ -39,12 +37,11 @@ router.get('/language/:languageId', async (req, res) => {
     }
 });
 
-// GET belirli bir kategori
 router.get('/:id', async (req, res) => {
     try {
         const category = await Category.findById(req.params.id).populate('language');
         if (category == null) {
-            return res.status(404).json({ message: 'Kategori bulunamadı' });
+            return res.status(404).json({ message: 'No category' });
         }
         res.json(category);
     } catch (err) {
@@ -52,7 +49,6 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// POST yeni bir kategori oluştur
 router.post('/', async (req, res) => {
     const category = new Category({
         image: req.body.image,
@@ -68,12 +64,11 @@ router.post('/', async (req, res) => {
     }
 });
 
-// PATCH bir kategori güncelle
 router.patch('/:id', async (req, res) => {
     try {
         const category = await Category.findById(req.params.id);
         if (category == null) {
-            return res.status(404).json({ message: 'Kategori bulunamadı' });
+            return res.status(404).json({ message: 'No category' });
         }
 
         if (req.body.image != null) {
@@ -96,16 +91,15 @@ router.patch('/:id', async (req, res) => {
     }
 });
 
-// DELETE bir kategori sil
 router.delete('/:id', async (req, res) => {
     try {
         const category = await Category.findById(req.params.id);
         if (category == null) {
-            return res.status(404).json({ message: 'Kategori bulunamadı' });
+            return res.status(404).json({ message: 'No category' });
         }
 
         await category.remove();
-        res.json({ message: 'Kategori silindi' });
+        res.json({ message: 'Category was deleted' });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
