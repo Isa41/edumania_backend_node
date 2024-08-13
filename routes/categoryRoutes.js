@@ -4,8 +4,24 @@ const Category = require('../models/category');
 
 router.get('/', async (req, res) => {
     try {
-        const categories = await Category.find().populate('language');
-        res.json(categories);
+		const page = parseInt(req.query.page) || 1;
+        const size = parseInt(req.query.size) || 10;
+
+        const categories = await Category.find()
+            .populate('language')
+            .skip((page - 1) * size)
+            .limit(size);
+
+        const totalItems = await Category.countDocuments();
+        const totalPages = Math.ceil(totalItems / size);
+
+        res.json({
+            data: categories,
+            page,
+            size,
+            totalPages,
+            totalItems
+        });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

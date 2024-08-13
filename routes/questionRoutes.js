@@ -4,8 +4,25 @@ const Question = require('../models/question');
 
 router.get('/', async (req, res) => {
     try {
-        const questions = await Question.find().populate('language').populate('category');
-        res.json(questions);
+		const page = parseInt(req.query.page) || 1;
+        const size = parseInt(req.query.size) || 10;
+
+        const questions = await Question.find()
+            .populate('category')
+            .populate('language')
+            .skip((page - 1) * size)
+            .limit(size);
+
+        const totalItems = await Question.countDocuments();
+        const totalPages = Math.ceil(totalItems / size);
+
+        res.json({
+            data: questions,
+            page,
+            size,
+            totalPages,
+            totalItems
+        });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

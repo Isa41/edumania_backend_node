@@ -4,8 +4,23 @@ const Language = require('../models/language');
 
 router.get('/', async (req, res) => {
     try {
-        const languages = await Language.find();
-        res.json(languages);
+		const page = parseInt(req.query.page) || 1;
+        const size = parseInt(req.query.size) || 10;
+
+        const languages = await Language.find()
+            .skip((page - 1) * size)
+            .limit(size);
+
+        const totalItems = await Language.countDocuments();
+        const totalPages = Math.ceil(totalItems / size);
+
+        res.json({
+            data: languages,
+            page,
+            size,
+            totalPages,
+            totalItems
+        });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
