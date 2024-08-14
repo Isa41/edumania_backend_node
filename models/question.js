@@ -13,7 +13,6 @@ const QuestionSchema = new mongoose.Schema({
     exampleMeaning4: String,
     language: { type: mongoose.Schema.Types.ObjectId, ref: 'Language' },
     category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
-	versionKey: false, 
 });
 
 module.exports = mongoose.model('Question', QuestionSchema);

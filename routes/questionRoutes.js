@@ -149,13 +149,18 @@ router.patch('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
     try {
-        const question = await Question.findById(req.params.id);
-        if (question == null) {
-            return res.status(404).json({ message: 'No question' });
+		if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({ message: 'Invalid ID format' });
         }
+        const id = new mongoose.Types.ObjectId(req.params.id); 
 
-        await question.remove();
-        res.json({ message: 'Question was deleted' });
+		const question = await Question.findByIdAndDelete(id);
+
+        if (!question) {
+            return res.status(404).json({ message: 'No question found to delete' });
+        }
+		
+        res.json({ message: 'Question deleted successfully' });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

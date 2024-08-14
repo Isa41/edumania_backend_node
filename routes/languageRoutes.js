@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Language = require('../models/language');
+const mongoose = require('mongoose');
 
 router.get('/', async (req, res) => {
     try {
@@ -52,6 +53,34 @@ router.post('/', async (req, res) => {
     }
 });
 
+router.put('/:id', async (req, res) => {
+    try {
+		if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({ message: 'Invalid ID format' });
+        }
+        const id = new mongoose.Types.ObjectId(req.params.id); 
+        const language = await Language.findById(id);
+        if (language == null) {
+            return res.status(404).json({ message: 'No language' });
+        }
+
+        if (req.body.image != null) {
+            language.image = req.body.image;
+        }
+        if (req.body.name != null) {
+            language.name = req.body.name;
+        }
+        if (req.body.languageCode != null) {
+            language.languageCode = req.body.languageCode;
+        }
+
+        const updatedLanguage = await language.save();
+        res.json(updatedLanguage);
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+});
+
 router.patch('/:id', async (req, res) => {
     try {
         const language = await Language.findById(req.params.id);
@@ -78,13 +107,19 @@ router.patch('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
     try {
-        const language = await Language.findById(req.params.id);
-        if (language == null) {
-            return res.status(404).json({ message: 'No language' });
+		if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({ message: 'Invalid ID format' });
         }
+        const id = new mongoose.Types.ObjectId(req.params.id); 
 
-        await language.remove();
-        res.json({ message: 'Lanugauge was deleted' });
+		const language = await Language.findByIdAndDelete(id);
+
+        if (!language) {
+            return res.status(404).json({ message: 'No language found to delete' });
+        }
+		
+        res.json({ message: 'Language deleted successfully' });
+
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

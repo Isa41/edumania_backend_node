@@ -80,6 +80,37 @@ router.post('/', async (req, res) => {
     }
 });
 
+router.put('/:id', async (req, res) => {
+    try {
+		if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({ message: 'Invalid ID format' });
+        }
+        const id = new mongoose.Types.ObjectId(req.params.id); 
+        const category = await Category.findById(id);
+        if (category == null) {
+            return res.status(404).json({ message: 'No category' });
+        }
+
+        if (req.body.image != null) {
+            category.image = req.body.image;
+        }
+        if (req.body.name != null) {
+            category.name = req.body.name;
+        }
+        if (req.body.language != null) {
+            category.language = req.body.language;
+        }
+        if (req.body.tag != null) {
+            category.tag = req.body.tag;
+        }
+
+        const updatedCategory = await category.save();
+        res.json(updatedCategory);
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+});
+
 router.patch('/:id', async (req, res) => {
     try {
         const category = await Category.findById(req.params.id);
@@ -109,13 +140,18 @@ router.patch('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
     try {
-        const category = await Category.findById(req.params.id);
-        if (category == null) {
-            return res.status(404).json({ message: 'No category' });
+		if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({ message: 'Invalid ID format' });
         }
+        const id = new mongoose.Types.ObjectId(req.params.id); 
 
-        await category.remove();
-        res.json({ message: 'Category was deleted' });
+		const category = await Category.findByIdAndDelete(id);
+
+        if (!category) {
+            return res.status(404).json({ message: 'No category found to delete' });
+        }
+		
+        res.json({ message: 'category deleted successfully' });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
