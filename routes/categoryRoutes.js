@@ -8,12 +8,23 @@ router.get("/", async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const size = parseInt(req.query.size) || 10;
 
+    const totalItems = await Category.countDocuments();
+
+    if (!totalItems || totalItems === 0) {
+      return res.json({
+        data: [],
+        page,
+        size,
+        totalPages: 0,
+        totalItems: 0,
+      });
+    }
+
     const categories = await Category.find()
       .populate("language")
       .skip((page - 1) * size)
       .limit(size);
 
-    const totalItems = await Category.countDocuments();
     const totalPages = Math.ceil(totalItems / size);
 
     res.json({
@@ -28,18 +39,34 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.get("/language/:languageId", async (req, res) => {
+router.get("/language/languageId", async (req, res) => {
   try {
-    const languageId = req.params.languageId;
+    //console.log("Received languageId:", req.query.languageId);
+    if (!mongoose.Types.ObjectId.isValid(req.query.languageId)) {
+      return res.status(400).json({ message: "Invalid ID format" });
+    }
+    const languageId = new mongoose.Types.ObjectId(req.query.languageId);
+
     const page = parseInt(req.query.page) || 1;
     const size = parseInt(req.query.size) || 10;
+
+    const totalItems = await Category.countDocuments({ language: languageId });
+
+    if (!totalItems || totalItems === 0) {
+      return res.json({
+        data: [],
+        page,
+        size,
+        totalPages: 0,
+        totalItems: 0,
+      });
+    }
 
     const categories = await Category.find({ language: languageId })
       .populate("language")
       .skip((page - 1) * size)
       .limit(size);
 
-    const totalItems = await Category.countDocuments({ language: languageId });
     const totalPages = Math.ceil(totalItems / size);
 
     res.json({
@@ -81,8 +108,8 @@ router.post("/", async (req, res) => {
     if (!tag || typeof tag !== "string") {
       return res.status(400).json({ message: "Invalid tag" });
     }
-    if (!language || !(language instanceof Language)) {
-      return res.status(400).json({ message: "Invalid language object" });
+    if (!language._id || !mongoose.Types.ObjectId.isValid(language._id)) {
+      return res.status(400).json({ message: "Invalid language Id" });
     }
     const category = new Category({
       image: image,
@@ -120,8 +147,8 @@ router.put("/:id", async (req, res) => {
     if (!tag || typeof tag !== "string") {
       return res.status(400).json({ message: "Invalid tag" });
     }
-    if (!language || !(language instanceof Language)) {
-      return res.status(400).json({ message: "Invalid language object" });
+    if (!language._id || !mongoose.Types.ObjectId.isValid(language._id)) {
+      return res.status(400).json({ message: "Invalid language Id" });
     }
     category.image = image;
     category.name = name;
@@ -154,8 +181,8 @@ router.patch("/:id", async (req, res) => {
     if (!tag || typeof tag !== "string") {
       return res.status(400).json({ message: "Invalid tag" });
     }
-    if (!language || !(language instanceof Language)) {
-      return res.status(400).json({ message: "Invalid language object" });
+    if (!language._id || !mongoose.Types.ObjectId.isValid(language._id)) {
+      return res.status(400).json({ message: "Invalid language Id" });
     }
 
     category.image = image;

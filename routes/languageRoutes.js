@@ -8,11 +8,22 @@ router.get("/", async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const size = parseInt(req.query.size) || 10;
 
+    const totalItems = await Language.countDocuments();
+
+    if (!totalItems || totalItems === 0) {
+      return res.json({
+        data: [],
+        page,
+        size,
+        totalPages: 0,
+        totalItems: 0,
+      });
+    }
+
     const languages = await Language.find()
       .skip((page - 1) * size)
       .limit(size);
 
-    const totalItems = await Language.countDocuments();
     const totalPages = Math.ceil(totalItems / size);
 
     res.json({

@@ -3,20 +3,30 @@ const router = express.Router();
 const Question = require("../models/question");
 const Category = require("../models/category");
 const Language = require("../models/language");
+const mongoose = require("mongoose");
 
 router.get("/", async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const size = parseInt(req.query.size) || 10;
 
+    const totalItems = await Question.countDocuments();
+
+    if (!totalItems || totalItems === 0) {
+      return res.json({
+        data: [],
+        page,
+        size,
+        totalPages: 0,
+        totalItems: 0,
+      });
+    }
+    const totalPages = Math.ceil(totalItems / size);
     const questions = await Question.find()
       .populate("category")
       .populate("language")
       .skip((page - 1) * size)
       .limit(size);
-
-    const totalItems = await Question.countDocuments();
-    const totalPages = Math.ceil(totalItems / size);
 
     res.json({
       data: questions,
@@ -30,26 +40,46 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.get("/filter", async (req, res) => {
+router.get("/categoryIdAndLanguageId", async (req, res) => {
   try {
-    const categoryId = req.query.categoryId;
-    const languageId = req.query.languageId;
     const page = parseInt(req.query.page) || 1;
     const size = parseInt(req.query.size) || 10;
+
+    const { categoryId, languageId } = req.query;
+
+    if (!categoryId || !mongoose.Types.ObjectId.isValid(categoryId)) {
+      return res.status(400).json({ message: "Invalid category Id" });
+    }
+    if (!languageId || !mongoose.Types.ObjectId.isValid(languageId)) {
+      return res.status(400).json({ message: "Invalid language Id" });
+    }
 
     const query = {
       category: categoryId,
       language: languageId,
     };
 
+    const totalItems = await Question.countDocuments(query);
+
+    if (!totalItems || totalItems === 0) {
+      return res.json({
+        data: [],
+        page,
+        size,
+        totalPages: 0,
+        totalItems: 0,
+      });
+    }
+    const totalPages = Math.ceil(totalItems / size);
     const questions = await Question.find(query)
       .populate("category")
       .populate("language")
       .skip((page - 1) * size)
       .limit(size);
 
-    const totalItems = await Question.countDocuments(query);
-    const totalPages = Math.ceil(totalItems / size);
+    if (!questions) {
+      return res.status(404).json({ message: "No question" });
+    }
 
     res.json({
       data: questions,
@@ -68,7 +98,7 @@ router.get("/:id", async (req, res) => {
     const question = await Question.findById(req.params.id)
       .populate("language")
       .populate("category");
-    if (question == null) {
+    if (!question) {
       return res.status(404).json({ message: "No question" });
     }
     res.json(question);
@@ -95,10 +125,10 @@ router.post("/", async (req, res) => {
     } = req.body;
 
     if (!word || typeof word !== "string") {
-      return res.status(400).send("Invalid image");
+      return res.status(400).send("Invalid word");
     }
     if (!meaning || typeof meaning !== "string") {
-      return res.status(400).json({ message: "Invalid name" });
+      return res.status(400).json({ message: "Invalid meaning" });
     }
     if (!example1 || typeof example1 !== "string") {
       return res.status(400).json({ message: "Invalid example1" });
@@ -124,12 +154,18 @@ router.post("/", async (req, res) => {
     if (!exampleMeaning4 || typeof exampleMeaning4 !== "string") {
       return res.status(400).json({ message: "Invalid exampleMeaning4" });
     }
-    if (!language || !(language instanceof Language)) {
-      return res.status(400).json({ message: "Invalid language object" });
+    if (!language._id || !mongoose.Types.ObjectId.isValid(language._id)) {
+      return res.status(400).json({ message: "Invalid language Id" });
     }
-    if (!category || !(category instanceof Category)) {
-      return res.status(400).json({ message: "Invalid category object" });
+    if (!category._id || !mongoose.Types.ObjectId.isValid(category._id)) {
+      return res.status(400).json({ message: "Invalid category Id" });
     }
+    // if (!language || !(language instanceof Language)) {
+    //   return res.status(400).json({ message: "Invalid language object" });
+    // }
+    // if (!category || !(category instanceof Category)) {
+    //   return res.status(400).json({ message: "Invalid category object" });
+    // }
     const question = new Question({
       word: word,
       meaning: meaning,
@@ -179,10 +215,10 @@ router.put("/:id", async (req, res) => {
     } = req.body;
 
     if (!word || typeof word !== "string") {
-      return res.status(400).send("Invalid image");
+      return res.status(400).send("Invalid word");
     }
     if (!meaning || typeof meaning !== "string") {
-      return res.status(400).json({ message: "Invalid name" });
+      return res.status(400).json({ message: "Invalid meaning" });
     }
     if (!example1 || typeof example1 !== "string") {
       return res.status(400).json({ message: "Invalid example1" });
@@ -208,11 +244,11 @@ router.put("/:id", async (req, res) => {
     if (!exampleMeaning4 || typeof exampleMeaning4 !== "string") {
       return res.status(400).json({ message: "Invalid exampleMeaning4" });
     }
-    if (!language || !(language instanceof Language)) {
-      return res.status(400).json({ message: "Invalid language object" });
+    if (!language._id || !mongoose.Types.ObjectId.isValid(language._id)) {
+      return res.status(400).json({ message: "Invalid language Id" });
     }
-    if (!category || !(category instanceof Category)) {
-      return res.status(400).json({ message: "Invalid category object" });
+    if (!category._id || !mongoose.Types.ObjectId.isValid(category._id)) {
+      return res.status(400).json({ message: "Invalid category Id" });
     }
 
     question.word = word;
@@ -259,10 +295,10 @@ router.patch("/:id", async (req, res) => {
     } = req.body;
 
     if (!word || typeof word !== "string") {
-      return res.status(400).send("Invalid image");
+      return res.status(400).send("Invalid word");
     }
     if (!meaning || typeof meaning !== "string") {
-      return res.status(400).json({ message: "Invalid name" });
+      return res.status(400).json({ message: "Invalid meaning" });
     }
     if (!example1 || typeof example1 !== "string") {
       return res.status(400).json({ message: "Invalid example1" });
@@ -288,11 +324,11 @@ router.patch("/:id", async (req, res) => {
     if (!exampleMeaning4 || typeof exampleMeaning4 !== "string") {
       return res.status(400).json({ message: "Invalid exampleMeaning4" });
     }
-    if (!language || !(language instanceof Language)) {
-      return res.status(400).json({ message: "Invalid language object" });
+    if (!language._id || !mongoose.Types.ObjectId.isValid(language._id)) {
+      return res.status(400).json({ message: "Invalid language Id" });
     }
-    if (!category || !(category instanceof Category)) {
-      return res.status(400).json({ message: "Invalid category object" });
+    if (!category._id || !mongoose.Types.ObjectId.isValid(category._id)) {
+      return res.status(400).json({ message: "Invalid category Id" });
     }
 
     question.word = word;
